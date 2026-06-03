@@ -327,12 +327,38 @@ def generate_html(stocks_data, kline_data):
             padding: 16px;
             transition: all 0.3s ease;
             border: 1px solid rgba(255,255,255,0.1);
+            cursor: pointer;
+            text-decoration: none;
+            display: block;
+            color: inherit;
         }}
 
         .stock-card:hover {{
             transform: translateY(-4px);
             background: rgba(255,255,255,0.1);
             box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            border-color: rgba(72, 219, 251, 0.4);
+        }}
+
+        .tv-badge {{
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 10px;
+            color: #48dbfb;
+            opacity: 0.6;
+            margin-top: 2px;
+            transition: opacity 0.2s;
+        }}
+
+        .stock-card:hover .tv-badge {{
+            opacity: 1;
+        }}
+
+        .tv-badge svg {{
+            width: 10px;
+            height: 10px;
+            fill: currentColor;
         }}
 
         .stock-header {{
@@ -462,20 +488,34 @@ def generate_html(stocks_data, kline_data):
             return num.toFixed(2);
         }}
 
+        function getTradingViewUrl(code, market) {{
+            const exchange = market === 1 ? 'SSE' : 'SZSE';
+            return `https://www.tradingview.com/chart/?symbol=${{exchange}}:${{code}}`;
+        }}
+
         function createStockCard(stock, index) {{
             const rankClass = index < 3 ? `rank-${{index + 1}}` : 'rank-other';
             const priceClass = stock.change_pct > 0 ? 'price-up' : (stock.change_pct < 0 ? 'price-down' : 'price-flat');
             const changeSign = stock.change_pct > 0 ? '+' : '';
             const hasKline = klineData[stock.code] && klineData[stock.code].length > 0;
+            const tvUrl = getTradingViewUrl(stock.code, stock.market);
 
-            const card = document.createElement('div');
+            const card = document.createElement('a');
             card.className = 'stock-card';
+            card.href = tvUrl;
+            card.target = '_blank';
+            card.rel = 'noopener noreferrer';
             card.innerHTML = `
                 <div class="stock-header">
                     <div class="stock-rank ${{rankClass}}">${{index + 1}}</div>
                     <div class="stock-info">
                         <div class="stock-name">${{stock.name}}</div>
-                        <div class="stock-code">${{stock.code}}</div>
+                        <div class="stock-code">${{stock.code}}
+                            <span class="tv-badge">
+                                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M4 4h16v2H4V4zm0 7h10v2H4v-2zm0 7h7v2H4v-2zm14-4l-5 5V10l5 5z"/></svg>
+                                TradingView
+                            </span>
+                        </div>
                     </div>
                     <div class="stock-price-section">
                         <div class="stock-price ${{priceClass}}">${{stock.price ? stock.price.toFixed(2) : '--'}}</div>
